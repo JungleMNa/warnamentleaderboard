@@ -120,6 +120,19 @@ body {
     border-bottom-color: var(--primary-color);
 }
 
+/* Admin Link - Subtle Key Icon */
+.admin-link {
+    opacity: 0.5;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.admin-link:hover {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+}
+
 /* Language Toggle Button */
 .lang-toggle {
     background: var(--card-bg);
@@ -665,6 +678,41 @@ body {
     50% {
         box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 4px 16px rgba(255, 215, 0, 0.5);
     }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 .player-info {

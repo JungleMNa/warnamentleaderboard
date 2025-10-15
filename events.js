@@ -1,23 +1,101 @@
 // Events Management
-let events = [
-
-];
+let events = [];
+let lastEventCount = 0;
+let hasLoadedOnce = false; // Flag to track if we've loaded from API at least once
 
 // Google Sheets Configuration
 const GOOGLE_SHEETS_CONFIG = {
     // Replace this with your actual Google Apps Script Web App URL
     // Instructions to set up are in the setup-instructions.txt file
-    scriptURL: 'https://script.google.com/macros/s/AKfycbxSSVDjRcgBlJ7ZUoZQbCw3OOliPrwmbyY0KoeRJsVW668Ij-wlVPuP3MAG2X_x3GIUrA/exec'
+    scriptURL: 'https://script.google.com/macros/s/AKfycbzmkhPge93gabbrqUrAYBHNDPr6VEBZMpoZ9-nHzFrV3tn-ObHE3SU4jKwaJlfSup8uWw/exec'
 };
 
 // Load events on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadEvents();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Loading state is already in HTML, just load events
+    await loadEventsFromGoogleSheets();
     setupModalHandlers();
+    
+    // Auto-refresh events every 5 seconds to check for new events
+    setInterval(async () => {
+        await loadEventsFromGoogleSheets(true);
+    }, 5000);
 });
+
+// Load events from Google Sheets
+async function loadEventsFromGoogleSheets(silent = false) {
+    try {
+        const response = await fetch(`${GOOGLE_SHEETS_CONFIG.scriptURL}?action=getEvents&t=${Date.now()}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const newEvents = data.events || [];
+            
+            // Always update on first load, or if events changed
+            if (!silent || JSON.stringify(newEvents) !== JSON.stringify(events)) {
+                events = newEvents;
+                hasLoadedOnce = true; // Mark as loaded
+                loadEvents();
+                
+                // Show notification if new events were added (only during auto-refresh)
+                if (silent && newEvents.length > lastEventCount) {
+                    showNotification('New event available!');
+                }
+                lastEventCount = events.length;
+            }
+        } else {
+            if (!silent) {
+                console.error('Error loading events:', data.message);
+                events = [];
+                hasLoadedOnce = true;
+                loadEvents();
+            }
+        }
+    } catch (error) {
+        if (!silent) {
+            console.error('Error fetching events:', error);
+            events = [];
+            hasLoadedOnce = true;
+            loadEvents();
+        }
+    }
+}
+
+// Show notification toast
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: var(--primary-color);
+        color: var(--dark-bg);
+        padding: 1rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
 function loadEvents() {
     const eventsGrid = document.getElementById('eventsGrid');
+    
+    // Don't clear the loading state if we haven't loaded from API yet
+    if (!hasLoadedOnce) {
+        return;
+    }
+    
     eventsGrid.innerHTML = '';
 
     if (events.length === 0) {

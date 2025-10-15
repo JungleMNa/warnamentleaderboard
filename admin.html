@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Warnament Leaderboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-box {
+            background: var(--card-bg);
+            padding: 3rem;
+            border: 2px solid var(--primary-color);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .login-box h1 {
+            color: var(--primary-color);
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .login-box p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .login-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .login-box button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            border: none;
+            font-weight: 900;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .login-box button:hover {
+            background: #f0c747;
+            transform: translateY(-2px);
+        }
+        .error-message {
+            background: var(--accent-red);
+            color: white;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        .admin-panel {
+            display: none;
+        }
+        .admin-panel.authenticated {
+            display: block;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        .admin-header {
+            background: var(--card-bg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--primary-color);
+            position: relative;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: #a01527;
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .admin-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        .admin-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+        .event-list-item {
+            background: var(--darker-bg);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .event-list-item:hover {
+            background: var(--card-bg);
+            transform: translateX(5px);
+        }
+        .event-list-item.active {
+            background: var(--card-bg);
+            border-left-color: var(--accent-blue);
+        }
+        .event-list-item h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        .event-list-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .player-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--darker-bg);
+            margin-bottom: 0.5rem;
+            border-left: 2px solid var(--accent-blue);
+        }
+        .player-item .player-name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .player-item .player-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--darker-bg);
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 3px solid var(--primary-color);
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary-color);
+        }
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            letter-spacing: 1px;
+        }
+        .btn-delete {
+            background: var(--accent-red);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .btn-delete:hover {
+            background: #a01527;
+        }
+        @media (max-width: 768px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <div class="icon-shield" style="width: 60px; height: 60px; margin: 0 auto 1rem;"></div>
+            <h1>ADMIN</h1>
+            <p>Enter password to access admin panel</p>
+            
+            <div id="errorMessage" class="error-message">
+                Incorrect password. Please try again.
+            </div>
+            
+            <form id="loginForm">
+                <input 
+                    type="password" 
+                    id="passwordInput" 
+                    placeholder="Enter password" 
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit">LOGIN</button>
+            </form>
+            
+            <p style="margin-top: 2rem; font-size: 0.85rem;">
+                <a href="index.html" style="color: var(--primary-color);">← Back to Home</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Panel (hidden until authenticated) -->
+    <div id="adminPanel" class="admin-panel">
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <h1>WARNAMENT</h1>
+                    <span class="subtitle">ADMIN PANEL</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">HOME</a></li>
+                    <li><a href="events.html">EVENTS</a></li>
+                    <li><a href="leaderboard.html">LEADERBOARD</a></li>
+                    <li><a href="admin.html" class="active">ADMIN</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="admin-container">
+        <div class="admin-header">
+            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+            <h1 style="color: var(--primary-color); letter-spacing: 3px;">ADMIN DASHBOARD</h1>
+            <p style="color: var(--text-secondary);">Manage events and view registrations</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEvents">0</div>
+                <div class="stat-label">TOTAL EVENTS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRegistrations">0</div>
+                <div class="stat-label">TOTAL REGISTRATIONS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEvents">0</div>
+                <div class="stat-label">ACTIVE EVENTS</div>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <div class="admin-section">
+                <h2><span class="icon-calendar" style="display: inline-block; width: 24px; height: 24px; vertical-align: middle; margin-right: 0.5rem;"></span>MANAGE EVENTS</h2>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;" onclick="showAddEventForm()">+ ADD NEW EVENT</button>
+                
+                <div id="eventsList">
+                    <!-- Events will be loaded here -->
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2><span class="icon-target" style="display: inline-block; width: 24px; height: 24px; vertical-align: middle; margin-right: 0.5rem;"></span>REGISTERED PLAYERS</h2>
+                <p id="selectedEventName" style="color: var(--text-secondary); margin-bottom: 1rem;">Select an event to view registrations</p>
+                
+                <div class="player-list" id="playersList">
+                    <div class="no-data">Select an event from the left</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- End Admin Panel -->
+
+    <!-- Add/Edit Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEventModal()">&times;</span>
+            <h2 id="modalTitle">Add New Event</h2>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventNameInput">Event Name</label>
+                    <input type="text" id="eventNameInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDateInput">Event Date</label>
+                    <input type="datetime-local" id="eventDateInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescInput">Description</label>
+                    <textarea id="eventDescInput" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="eventPrizeInput">Prize Pool</label>
+                    <input type="text" id="eventPrizeInput" placeholder="e.g., $500">
+                </div>
+                <div class="form-group">
+                    <label for="eventStatusInput">Status</label>
+                    <select id="eventStatusInput">
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">SAVE EVENT</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Password protection
+        const ADMIN_PASSWORD = 'warnament2025'; // ⚠️ CHANGE THIS PASSWORD!
+        
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const isAuthenticated = sessionStorage.getItem('adminAuth') === 'true';
+            if (isAuthenticated) {
+                showAdminPanel();
+            }
+        });
+        
+        // Handle login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                // Correct password
+                sessionStorage.setItem('adminAuth', 'true');
+                showAdminPanel();
+            } else {
+                // Wrong password
+                document.getElementById('errorMessage').classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                
+                // Hide error after 3 seconds
+                setTimeout(() => {
+                    document.getElementById('errorMessage').classList.remove('show');
+                }, 3000);
+            }
+        });
+        
+        // Show admin panel
+        function showAdminPanel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').classList.add('authenticated');
+        }
+        
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            location.reload();
+        }
+    </script>
+    <script src="admin.js"></script>
+</body>
+</html>
