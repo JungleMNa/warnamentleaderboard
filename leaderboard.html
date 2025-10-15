@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warnament Leaderboard - Rankings</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>WARNAMENT</h1>
+                <span class="subtitle">LEADERBOARD</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" data-i18n="nav.home">HOME</a></li>
+                <li><a href="events.html" data-i18n="nav.events">EVENTS</a></li>
+                <li><a href="leaderboard.html" class="active" data-i18n="nav.leaderboard">LEADERBOARD</a></li>
+                <li><button id="langToggle" class="lang-toggle">RU</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="container">
+            <h1 data-i18n="leaderboard.title">GLOBAL LEADERBOARD</h1>
+            <p data-i18n="leaderboard.subtitle">Top commanders ranked by event performance</p>
+        </div>
+    </section>
+
+    <section class="leaderboard-section">
+        <div class="container">
+            <div class="leaderboard-filters">
+                <button class="filter-btn active" data-filter="all" data-i18n="leaderboard.allTime">ALL TIME</button>
+                <button class="filter-btn" data-filter="monthly" data-i18n="leaderboard.thisMonth">THIS MONTH</button>
+                <button class="filter-btn" data-filter="weekly" data-i18n="leaderboard.thisWeek">THIS WEEK</button>
+            </div>
+
+            <div class="leaderboard-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="leaderboard.rank">RANK</th>
+                            <th data-i18n="leaderboard.player">PLAYER</th>
+                            <th data-i18n="leaderboard.wins">WINS</th>
+                            <th data-i18n="leaderboard.points">POINTS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr class="rank-1">
+                            <td><span class="rank-badge gold">1</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <div class="player-avatar icon-crown"></div>
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr class="rank-2">
+                            <td><span class="rank-badge silver">2</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr class="rank-3">
+                            <td><span class="rank-badge bronze">3</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge">4</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge">5</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge">6</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge">7</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge">8</span></td>
+                            <td>
+                                <div class="player-info">
+                                    <span class="player-name">UNKNOWN</span>
+                                </div>
+                            </td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Warnament Leaderboard</p>
+        </div>
+    </footer>
+
+    <script src="language.js"></script>
+    <script src="leaderboard.js"></script>
+</body>
+</html>

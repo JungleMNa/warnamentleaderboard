@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warnament Leaderboard - Events</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>WARNAMENT</h1>
+                <span class="subtitle">LEADERBOARD</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" data-i18n="nav.home">HOME</a></li>
+                <li><a href="events.html" class="active" data-i18n="nav.events">EVENTS</a></li>
+                <li><a href="leaderboard.html" data-i18n="nav.leaderboard">LEADERBOARD</a></li>
+                <li><button id="langToggle" class="lang-toggle">RU</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="container">
+            <h1 data-i18n="events.title">UPCOMING EVENTS</h1>
+            <p data-i18n="events.subtitle">Join events</p>
+        </div>
+    </section>
+
+    <section class="events-section">
+        <div class="container">
+            <div class="events-header">
+                <h2 data-i18n="events.activeUpcoming">Active & Upcoming Events</h2>
+            </div>
+
+            <div class="events-grid" id="eventsGrid">
+                <!-- Events will be dynamically loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Event Details Modal -->
+    <div id="eventDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="eventDetailsContent">
+                <!-- Event details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Enter Event Modal -->
+    <div id="enterEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 data-i18n="events.enterEvent">Enter Event</h2>
+            <div id="enterEventInfo"></div>
+            <form id="enterEventForm">
+                <div class="form-group">
+                    <label for="discordUsername" data-i18n="events.discordUsername">Discord Username</label>
+                    <input type="text" id="discordUsername" placeholder="YourUsername#1234" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-i18n="events.register">REGISTER</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Warnament Leaderboard</p>
+        </div>
+    </footer>
+
+    <script src="language.js"></script>
+    <script src="events.js"></script>
+</body>
+</html>
