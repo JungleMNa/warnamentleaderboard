@@ -126,25 +126,94 @@ function selectEvent(eventId) {
 }
 
 // Load players for selected event
-function loadPlayersForEvent(eventId) {
+async function loadPlayersForEvent(eventId) {
     const event = currentEvents.find(e => e.id === eventId);
     if (!event) return;
     
     document.getElementById('selectedEventName').textContent = `Registrations for: ${event.name}`;
     
-    // In a real implementation, this would fetch from Google Sheets
-    // For now, show a message
     const playersList = document.getElementById('playersList');
+    
+    // Show loading state
     playersList.innerHTML = `
         <div class="no-data">
-            <p style="margin-bottom: 1rem;">To view registrations, check your Google Sheet:</p>
-            <p style="color: var(--primary-color);">Filter the "Event Name" column for "${event.name}"</p>
-            <br>
-            <p style="font-size: 0.9rem; color: var(--text-secondary);">
-                All registrations are automatically saved to your Google Sheet when users click "Enter" on the events page.
-            </p>
+            <div class="loading-spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+            <p>Loading registrations...</p>
         </div>
     `;
+    
+    try {
+        // Fetch registrations from Google Sheets
+        const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getRegistrations&t=${Date.now()}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const allRegistrations = data.registrations || [];
+            
+            // Filter registrations for this specific event
+            const eventRegistrations = allRegistrations.filter(reg => reg.event === event.name);
+            
+            if (eventRegistrations.length === 0) {
+                playersList.innerHTML = `
+                    <div class="no-data">
+                        <p style="color: var(--text-secondary);">No registrations yet for this event.</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary); opacity: 0.7;">
+                            Players will appear here when they register on the events page.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display registrations
+            playersList.innerHTML = '';
+            eventRegistrations.forEach(reg => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                
+                const regDate = new Date(reg.timestamp);
+                const formattedTime = regDate.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                playerItem.innerHTML = `
+                    <div class="player-name">${reg.username}</div>
+                    <div class="player-time">${formattedTime}</div>
+                `;
+                
+                playersList.appendChild(playerItem);
+            });
+            
+            // Update total registrations stat
+            updateRegistrationCount(allRegistrations.length);
+            
+        } else {
+            playersList.innerHTML = `
+                <div class="no-data" style="color: var(--accent-red);">
+                    <p>Error loading registrations.</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem;">Check Google Sheets setup.</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error fetching registrations:', error);
+        playersList.innerHTML = `
+            <div class="no-data">
+                <p style="color: var(--text-secondary);">Unable to load registrations.</p>
+                <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                    Make sure Google Sheets is configured correctly.
+                </p>
+            </div>
+        `;
+    }
+}
+
+// Update registration count
+function updateRegistrationCount(count) {
+    document.getElementById('totalRegistrations').textContent = count;
 }
 
 // Update statistics
@@ -153,8 +222,25 @@ function updateStats() {
     const activeCount = currentEvents.filter(e => e.status === 'live').length;
     document.getElementById('activeEvents').textContent = activeCount;
     
-    // Total registrations would come from Google Sheets
-    document.getElementById('totalRegistrations').textContent = '-';
+    // Load total registrations count
+    loadTotalRegistrations();
+}
+
+// Load total registrations count
+async function loadTotalRegistrations() {
+    try {
+        const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getRegistrations&t=${Date.now()}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const count = (data.registrations || []).length;
+            document.getElementById('totalRegistrations').textContent = count;
+        } else {
+            document.getElementById('totalRegistrations').textContent = '-';
+        }
+    } catch (error) {
+        document.getElementById('totalRegistrations').textContent = '-';
+    }
 }
 
 // Show add event form
