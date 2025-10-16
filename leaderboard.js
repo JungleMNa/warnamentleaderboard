@@ -1,7 +1,31 @@
 // Leaderboard functionality
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz_is5E1jYRPebl_cQWDH3pqgSoOS1LYhvZGVI11IlSFtmNNTgVw9HB2XsIvXYh2Zxg2A/exec';
+
 document.addEventListener('DOMContentLoaded', () => {
     setupFilterButtons();
+    loadLeaderboardData();
 });
+
+// Load leaderboard data from Google Sheets
+async function loadLeaderboardData() {
+    const tbody = document.getElementById('leaderboardBody');
+    
+    try {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">Loading leaderboard...</td></tr>';
+        
+        const response = await fetch(GOOGLE_SHEETS_URL + '?action=getLeaderboard');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.players && data.players.length > 0) {
+            updateLeaderboardTable(data.players);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No players yet. Check back soon!</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--accent-red);">Error loading leaderboard. Please try again later.</td></tr>';
+    }
+}
 
 function setupFilterButtons() {
     const filterButtons = document.querySelectorAll('.filter-btn');
@@ -17,9 +41,8 @@ function setupFilterButtons() {
             // Get filter type
             const filter = button.dataset.filter;
             
-            // You can implement different data loading based on filter
-            // For now, we'll just show a visual indication
-            console.log('Filtering by:', filter);
+            // Reload data (in future can filter by date)
+            loadLeaderboardData();
         });
     });
 }
@@ -31,19 +54,21 @@ function updateLeaderboardTable(players) {
     tbody.innerHTML = '';
     
     if (!players || players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No players yet. Start the server to see data!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No players yet!</td></tr>';
         return;
     }
     
-    players.forEach((player) => {
-        const row = createLeaderboardRow(player);
+    // Sort by points (descending)
+    players.sort((a, b) => b.points - a.points);
+    
+    players.forEach((player, index) => {
+        const row = createLeaderboardRow(player, index + 1);
         tbody.appendChild(row);
     });
 }
 
-function createLeaderboardRow(player) {
+function createLeaderboardRow(player, rank) {
     const row = document.createElement('tr');
-    const rank = player.rank || 0;
     row.className = rank <= 3 ? `rank-${rank}` : '';
     
     let rankBadgeClass = 'rank-badge';
@@ -60,17 +85,12 @@ function createLeaderboardRow(player) {
         <td><span class="${rankBadgeClass}">${rank}</span></td>
         <td>
             <div class="player-info">
-                <span class="player-name">${escapeHtml(player.land || 'Unknown')}</span>
-                ${player.player ? `<span class="player-subtext">${escapeHtml(player.player)}</span>` : ''}
+                ${rank === 1 ? '<div class="player-avatar icon-crown"></div>' : ''}
+                <span class="player-name">${escapeHtml(player.name || 'Unknown')}</span>
             </div>
         </td>
-        <td>${formatNumber(player.provinces)}</td>
-        <td>${formatNumber(player.points)}</td>
-        <td>${formatNumber(player.population)}</td>
-        <td>${formatNumber(player.economy)}</td>
-        <td>${formatNumber(player.income)}</td>
-        <td>${formatNumber(player.damage)}</td>
-        <td>${formatNumber(player.losses)}</td>
+        <td>${formatNumber(player.wins || 0)}</td>
+        <td>${formatNumber(player.points || 0)}</td>
     `;
     
     return row;

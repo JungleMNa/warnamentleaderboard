@@ -1,8 +1,8 @@
 // Admin Panel JavaScript
 // This manages events via Google Sheets
 
-// YOUR GOOGLE SHEETS WEB APP URL (same as in events.js)
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzmkhPge93gabbrqUrAYBHNDPr6VEBZMpoZ9-nHzFrV3tn-ObHE3SU4jKwaJlfSup8uWw/exec';
+// sheets
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz_is5E1jYRPebl_cQWDH3pqgSoOS1LYhvZGVI11IlSFtmNNTgVw9HB2XsIvXYh2Zxg2A/exec';
 
 let currentEvents = [];
 let selectedEventId = null;
@@ -52,10 +52,20 @@ async function loadEventsFromGoogleSheets(silent = false) {
 // Save event to Google Sheets
 async function saveEventToGoogleSheets(eventData, action) {
     try {
+        // Get admin password from session (stored during login)
+        const adminPassword = sessionStorage.getItem('adminPassword');
+        
+        if (!adminPassword) {
+            alert('Session expired. Please log in again.');
+            logout();
+            return false;
+        }
+        
         const payload = {
             action: action,
             event: eventData,
-            eventId: eventData.id
+            eventId: eventData.id,
+            adminPassword: adminPassword  // Include password for verification
         };
         
         const response = await fetch(GOOGLE_SHEETS_URL, {
@@ -226,14 +236,24 @@ function updateStats() {
     loadTotalRegistrations();
 }
 
-// Load total registrations count
+// Load total registrations count (only for existing events)
 async function loadTotalRegistrations() {
     try {
         const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getRegistrations&t=${Date.now()}`);
         const data = await response.json();
         
         if (data.status === 'success') {
-            const count = (data.registrations || []).length;
+            const allRegistrations = data.registrations || [];
+            
+            // Get list of existing event names
+            const existingEventNames = currentEvents.map(e => e.name);
+            
+            // Filter registrations to only include those for existing events
+            const validRegistrations = allRegistrations.filter(reg => 
+                existingEventNames.includes(reg.event)
+            );
+            
+            const count = validRegistrations.length;
             document.getElementById('totalRegistrations').textContent = count;
         } else {
             document.getElementById('totalRegistrations').textContent = '-';
@@ -297,7 +317,8 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         date: document.getElementById('eventDateInput').value,
         description: document.getElementById('eventDescInput').value,
         prize: document.getElementById('eventPrizeInput').value,
-        status: document.getElementById('eventStatusInput').value
+        status: document.getElementById('eventStatusInput').value,
+        tag: document.getElementById('eventTagInput').value.trim().toUpperCase() // Add tag field
     };
     
     if (mode === 'add') {
@@ -322,3 +343,213 @@ window.onclick = (event) => {
         event.target.style.display = 'none';
     }
 };
+
+// ========== TAB SWITCHING ==========
+function switchAdminTab(tabName) {
+    // Hide all tabs
+    document.getElementById('eventsTab').style.display = 'none';
+    document.getElementById('leaderboardTab').style.display = 'none';
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.style.background = 'var(--darker-bg)';
+        btn.style.color = 'var(--text-primary)';
+        btn.style.border = '1px solid var(--border-color)';
+    });
+    
+    // Show selected tab and activate button
+    if (tabName === 'events') {
+        document.getElementById('eventsTab').style.display = 'block';
+        event.target.style.background = 'var(--primary-color)';
+        event.target.style.color = 'var(--dark-bg)';
+        event.target.style.border = 'none';
+    } else if (tabName === 'leaderboard') {
+        document.getElementById('leaderboardTab').style.display = 'block';
+        event.target.style.background = 'var(--primary-color)';
+        event.target.style.color = 'var(--dark-bg)';
+        event.target.style.border = 'none';
+        loadLeaderboardData();
+    }
+}
+
+// ========== LEADERBOARD MANAGEMENT ==========
+let leaderboardPlayers = [];
+let selectedPlayerId = null;
+
+// Load leaderboard from Google Sheets
+async function loadLeaderboardData() {
+    try {
+        const response = await fetch(GOOGLE_SHEETS_URL + '?action=getLeaderboard');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.players) {
+            leaderboardPlayers = data.players;
+            displayLeaderboardTable();
+        } else {
+            // If no leaderboard data, show empty state
+            leaderboardPlayers = [];
+            displayLeaderboardTable();
+        }
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        document.getElementById('leaderboardTableBody').innerHTML = 
+            '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--accent-red);">Error loading leaderboard data</td></tr>';
+    }
+}
+
+// Display leaderboard table
+function displayLeaderboardTable() {
+    const tbody = document.getElementById('leaderboardTableBody');
+    
+    if (leaderboardPlayers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No players yet. Click "Add Player" to get started!</td></tr>';
+        return;
+    }
+    
+    // Sort by points (descending)
+    leaderboardPlayers.sort((a, b) => b.points - a.points);
+    
+    tbody.innerHTML = leaderboardPlayers.map((player, index) => {
+        const rank = index + 1;
+        
+        return `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 1rem; color: var(--primary-color); font-weight: bold;">#${rank}</td>
+                <td style="padding: 1rem; color: var(--text-primary);">${player.name}</td>
+                <td style="padding: 1rem; text-align: center; color: var(--accent-green);">${player.wins || 0}</td>
+                <td style="padding: 1rem; text-align: center; color: var(--primary-color); font-weight: bold;">${player.points}</td>
+                <td style="padding: 1rem; text-align: center;">
+                    <button onclick="editPlayer('${player.id}')" style="background: var(--accent-blue); color: white; padding: 0.4rem 0.8rem; border: none; cursor: pointer; margin-right: 0.5rem; border-radius: 4px;">EDIT</button>
+                    <button onclick="deletePlayer('${player.id}')" style="background: var(--accent-red); color: white; padding: 0.4rem 0.8rem; border: none; cursor: pointer; border-radius: 4px;">DELETE</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Show add player form
+function showAddPlayerForm() {
+    document.getElementById('playerModalTitle').textContent = 'Add New Player';
+    document.getElementById('playerForm').dataset.mode = 'add';
+    document.getElementById('playerNameInput').value = '';
+    document.getElementById('playerWinsInput').value = '0';
+    document.getElementById('playerPointsInput').value = '0';
+    document.getElementById('playerModal').style.display = 'block';
+}
+
+// Edit player
+function editPlayer(playerId) {
+    const player = leaderboardPlayers.find(p => p.id === playerId);
+    if (!player) return;
+    
+    selectedPlayerId = playerId;
+    document.getElementById('playerModalTitle').textContent = 'Edit Player';
+    document.getElementById('playerForm').dataset.mode = 'edit';
+    document.getElementById('playerForm').dataset.playerId = playerId;
+    document.getElementById('playerNameInput').value = player.name;
+    document.getElementById('playerWinsInput').value = player.wins || 0;
+    document.getElementById('playerPointsInput').value = player.points;
+    document.getElementById('playerModal').style.display = 'block';
+}
+
+// Delete player
+async function deletePlayer(playerId) {
+    if (!confirm('Are you sure you want to delete this player?')) return;
+    
+    const adminPassword = sessionStorage.getItem('adminPassword');
+    if (!adminPassword) {
+        alert('Session expired. Please log in again.');
+        logout();
+        return;
+    }
+    
+    try {
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'deletePlayer',
+                playerId: playerId,
+                adminPassword: adminPassword
+            })
+        });
+        
+        // Remove from local array
+        leaderboardPlayers = leaderboardPlayers.filter(p => p.id !== playerId);
+        displayLeaderboardTable();
+        alert('Player deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting player:', error);
+        alert('Error deleting player. Please try again.');
+    }
+}
+
+// Close player modal
+function closePlayerModal() {
+    document.getElementById('playerModal').style.display = 'none';
+    selectedPlayerId = null;
+}
+
+// Handle player form submission
+document.getElementById('playerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target;
+    const mode = form.dataset.mode;
+    
+    const playerData = {
+        name: document.getElementById('playerNameInput').value.trim(),
+        wins: parseInt(document.getElementById('playerWinsInput').value),
+        points: parseInt(document.getElementById('playerPointsInput').value)
+    };
+    
+    const adminPassword = sessionStorage.getItem('adminPassword');
+    if (!adminPassword) {
+        alert('Session expired. Please log in again.');
+        logout();
+        return;
+    }
+    
+    if (mode === 'add') {
+        // Generate new ID
+        playerData.id = 'player_' + Date.now();
+        
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'createPlayer',
+                player: playerData,
+                adminPassword: adminPassword
+            })
+        });
+        
+        leaderboardPlayers.push(playerData);
+    } else {
+        // Edit existing
+        const playerId = form.dataset.playerId;
+        playerData.id = playerId;
+        
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'updatePlayer',
+                player: playerData,
+                adminPassword: adminPassword
+            })
+        });
+        
+        const index = leaderboardPlayers.findIndex(p => p.id === playerId);
+        if (index !== -1) {
+            leaderboardPlayers[index] = playerData;
+        }
+    }
+    
+    displayLeaderboardTable();
+    closePlayerModal();
+    alert('Player saved successfully!');
+});

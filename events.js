@@ -7,7 +7,7 @@ let hasLoadedOnce = false; // Flag to track if we've loaded from API at least on
 const GOOGLE_SHEETS_CONFIG = {
     // Replace this with your actual Google Apps Script Web App URL
     // Instructions to set up are in the setup-instructions.txt file
-    scriptURL: 'https://script.google.com/macros/s/AKfycbzmkhPge93gabbrqUrAYBHNDPr6VEBZMpoZ9-nHzFrV3tn-ObHE3SU4jKwaJlfSup8uWw/exec'
+    scriptURL: 'https://script.google.com/macros/s/AKfycbz_is5E1jYRPebl_cQWDH3pqgSoOS1LYhvZGVI11IlSFtmNNTgVw9HB2XsIvXYh2Zxg2A/exec'
 };
 
 // Load events on page load
