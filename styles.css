@@ -348,6 +348,11 @@ html {
     border-bottom: 1px solid var(--border-color);
 }
 
+.cta-section .container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
 .cta-section h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
@@ -1439,6 +1444,8 @@ html {
     padding: 3rem 2rem;
     border-radius: 8px;
     text-align: center;
+    margin: 0 auto;
+    max-width: 900px;
 }
 
 .cta-section h2 {
